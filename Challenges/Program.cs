@@ -1,6 +1,6 @@
 ﻿using Challenges;
 
-IAlgorithm algorithm = new MovingZeros();
+IAlgorithm algorithm = new PyramidedAzkee();
 algorithm.Execute();
 
 
