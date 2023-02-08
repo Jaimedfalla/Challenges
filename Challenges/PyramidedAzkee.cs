@@ -17,8 +17,8 @@ namespace Challenges
 {
     internal class PyramidedAzkee : IAlgorithm
     {
-        private IDictionary<char, char> _topLeftRules = new Dictionary<char, char>() {
-                {' ','.'},
+        private readonly IDictionary<char, char> _topLeftRules = new Dictionary<char, char>() {
+                {' ','\\'},
                 {'.','´'},
                 {'´','\\'},
                 {'\\','´'},
@@ -30,101 +30,49 @@ namespace Challenges
 
         public void Execute()
         {
-            int size = 8;
+            int n = 3;
             string pyramid = string.Empty;
-            string[] left = getTopLefPyramid(size);
-            string[] right = getTopRigthPyramid(size);
-            for (int i = 0; i < size*2; i++) {
-                string wleft = left[i];
-                string wright = right[i];
-                pyramid = $"{pyramid}{wleft}{wright}{Environment.NewLine}";
+            string[] pry = getSolutionTwo(n);
+            for (int i = 0; i < pry.Length; i++)
+            {
+                pyramid = $"{pyramid}{pry[i]}{(i == (n * 2) - 1 ? string.Empty : Environment.NewLine)}";
             }
             Console.WriteLine(pyramid);
         }
 
-        private string[] getTopLefPyramid(int n) {
-            string[] pyramid = new string[n*2];
-            int increment = 0;
-            int spaces = 1;
-
-            for (int x=n-1; x >= 0;x--) {
-                char[] rowChars = new char[n * 5];
-                char startChar = ' ';
-                int width = (n * 2) + increment;
-
-                for (int y = 0; y < width; y++) {
-
-                    startChar = y >= spaces? _topLeftRules[startChar]: startChar;
-                    rowChars[y] = startChar;
-                }
- 
-                spaces += 3;
-
-                increment++;
-                pyramid[x] = new string(rowChars);
-            }
-
-            pyramid = getBottomLeftPyramid(n, pyramid);
-
-            return pyramid;
-        }
-
-        private string[] getTopRigthPyramid(int n)
+        private string[] getSolutionTwo(int n)
         {
-            string[] pyramid = new string[n*2];
-            int increment = 0;
-
-            for(int y = 0; y < n*2; y++)
+            int spaces = n > 1 ? (2 * n) + (n - 2) : 1;
+            char character = ' ';
+            string[] pyramid = new string[n * 2];
+            for (int y = 0; y < n * 2; y++)
             {
-                char[] rowChars = new char[n * 5];
-                char startChar = '/';
-
-                int width = 2 + increment;
-                for (int x = 0; x < width; x++)
+                char startChar = y >= n ? '\\' : '.';
+                char[] row = new char[n * 5];
+                for (int x = 0; x < n * 5; x++)
                 {
-                    startChar = x switch
+                    character = x switch
                     {
-                        _ when x == 0 => startChar,
-                        _ when x == width - 1 => '\\',
-                        _ when y== (3*(y-2))-2 && x==1 => '|',
-                        _ when y == 2 && x == 3 => ':',
-                        _ when y % 3==0 && x==2 => '|',
-                        _ when x > 1 && $"{rowChars[x - 2]}{rowChars[x-1]}".Equals("__") => '|',
-                        _ => _topLeftRules[startChar]
+                        _ when x == spaces => startChar,
+                        _ when x == (3 * n) - (y + 1) => '/',
+                        _ when x == (3 * n) + y || (y >= n && x == 0) => '\\',
+                        _ when y == 2 && x == 3 * n => ':',
+                        _ when (x > (3 * n) - (y + 1) && $"{row[x - 2]}{row[x - 1]}".Equals("__")) || (y % 3 == 0 && x == (3 * n) - (y - 1)) || (y > 3 && (y + 2) % 3 == 0 && x == (3 * n) - y) => '|',
+                        _ when x < spaces || x > (3 * n) + y || ((y % 2 == 1) && ((y >= 3 && y < n && x == spaces + 3) || (x == spaces + 1 && y == n))) => ' ',
+                        _ => _topLeftRules[character]
                     };
-                    
-                    rowChars[x] = startChar;
+                    row[x] = character;
                 }
 
-                increment += 2;
-                pyramid[y] = new string(rowChars);
-            }
+                spaces += y switch
+                {
+                    _ when y == n - 1 => -1,
+                    _ when y >= n => 1,
+                    _ => -3
 
-            return pyramid;
-        }
+                };
 
-        private string[] getBottomLeftPyramid(int n, string[] pyramid)
-        {
-            int decrement = 1;
-            int size = (n * 2) - decrement;
-            int spaces = 0;
-            for (int y = 0; y < n; y++) {
-                char startChar = '\\';
-                char[] rowChars = new char[size];
-                int width = (n * 2) - decrement;
-                for (int x = 0; x < width; x++) {
-                    startChar = x switch
-                    {
-                        _ when spaces > 0 && x <=spaces => ' ',
-                        _ when x == spaces + 1 || x == width - 1 => '\\',
-                        _ => _topLeftRules[startChar]
-                    };
-
-                    rowChars[x] = startChar;
-                }
-
-                decrement++;
-                pyramid[n+y] = new string(rowChars);
+                pyramid[y] = new string(row);
             }
 
             return pyramid;
