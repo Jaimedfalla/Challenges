@@ -5,82 +5,69 @@ Empty positions are marked ..
 Walls are marked W.
 Start and exit positions are empty in all test cases. */
 
-namespace Challenges{
-
+namespace Challenges
+{
     internal class PathFinder : IAlgorithm
     {
-        private IEnumerable<(int,int)> alternativePositions = Enumerable.Empty<(int,int)>();
-
-        private IEnumerable<(int,int)> path = Enumerable.Empty<(int,int)>();
-
         public void Execute()
         {
-            bool result = true;
-            (int vertical,int horizontal) position = (0,0);
+            bool result = false;
+            int position = 0;
+            Stack<int> alternativePositions = new();
 
             string maze = ".W...W.W..\n" +
                           ".......W..\n" +
                           "W..W......\n" +
                           "...W.WW...\n" +
-                          "WW..W..WWW\n" +
+                          "WW..W..WW.\n" +
                           ".....W....\n" +
                           "W.W.W....W\n" +
                           "...WW...W.\n" +
                           ".W........\n" +
-                          ".W........";
+                          ".W........\n";
 
-            string[] matrix = maze.Split("\n");
+            maze = maze.Replace("\n", "");
+            int size = (int)Math.Sqrt(maze.Length);
+            bool[] visited = new bool[maze.Length];
+            alternativePositions.Push(position);
 
-            while((position.horizontal < matrix[0].Length && position.vertical <  matrix.Length)){
-                path = path.Append(position);
-                position = NextPosition(position,matrix);
+            while (alternativePositions.Any() && !result)
+            {
+                position = alternativePositions.Pop();
 
-                if(position.horizontal == default && position.vertical==default)
+                if (position == maze.Length - 1) result = true;
+                else
                 {
-                    result = false;
-                    break;
+                    visited[position] = true;
+                    IEnumerable<int> steps = NextPosition(position, maze, size, visited);
+                    foreach (int step in steps)
+                    {
+                        alternativePositions.Push(step);
+                    }
                 }
-
-                if(position.horizontal == matrix[0].Length-1 && position.vertical==matrix.Length - 1)
-                {
-                    result = true;
-                    break;
-                }
-
-                result = true;
             }
 
             Console.WriteLine(result);
         }
 
-        private (int,int) NextPosition((int,int)actual, string[] matrix){
-
-            if(actual.Item1 == matrix.Length - 1 &&
-                actual.Item2==matrix[0].Length - 1) return actual;
-
-            (int,int) nextMove = (default,default);
-            (int vertical,int horizontal) up = (actual.Item1 - 1 >=0? actual.Item1 - 1: 0,actual.Item2);
-            (int vertical,int horizontal) down = (actual.Item1 + 1 < matrix.Length? actual.Item1 + 1: matrix.Length-1,actual.Item2);
-            (int vertical,int horizontal) left = (actual.Item1,actual.Item2-1 >=0?actual.Item2 - 1:0);
-            (int vertical,int horizontal) rigth = (actual.Item1,actual.Item2+1 < matrix.Length?actual.Item2+1:matrix.Length - 1);
-
-            if(!path.Contains(rigth) && matrix[rigth.vertical][rigth.horizontal] == '.') nextMove = rigth;
-
-            if(nextMove == (default,default) && matrix[down.vertical][down.horizontal] == '.') nextMove = down;
-            AddToAlternative(up,matrix);
-
-            if(nextMove == (default,default) && matrix[left.vertical][left.horizontal] == '.') nextMove = left;
-            AddToAlternative(left,matrix);
-
-            if(nextMove == (default,default) && matrix[up.vertical][up.horizontal] == '.') nextMove = up;
-            AddToAlternative(up,matrix);
-
-            return nextMove;
-        }
-
-        private void AddToAlternative((int vertical,int horizontal) position,string[] matrix)
+        private IEnumerable<int> NextPosition(int actual, string matrix, int size, bool[] visited)
         {
-            if(!path.Contains(position) && matrix[position.vertical][position.horizontal] == '.') alternativePositions = alternativePositions.Append(position);
+            IEnumerable<int> positions = Enumerable.Empty<int>();
+
+            int up = actual - size;
+            int down = actual + size;
+            int left = actual - 1;
+            int rigth = actual + 1;
+            int fila = actual / size;
+
+            if (IsValidStep(up, matrix, visited)) positions = positions.Append(up);
+            if (IsValidStep(left, matrix, visited) && (left / size) == fila) positions = positions.Append(left);
+            if (IsValidStep(down, matrix, visited)) positions = positions.Append(down);
+            if (IsValidStep(rigth, matrix, visited) && (rigth / size) == fila) positions = positions.Append(rigth);
+
+            return positions;
         }
+
+        private bool IsValidStep(int step, string maze, bool[] visited) => step >= 0 && step < maze.Length && !visited[step] && maze[step] == '.';
     }
 }
