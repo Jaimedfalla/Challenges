@@ -1,6 +1,6 @@
 ﻿using Challenges;
 
-IAlgorithm algorithm = new PyramidedAzkee();
+IAlgorithm algorithm = new PathFinder();
 algorithm.Execute();
 
 
