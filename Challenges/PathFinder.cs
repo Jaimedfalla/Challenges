@@ -9,21 +9,30 @@ namespace Challenges{
 
     internal class PathFinder : IAlgorithm
     {
+        private IEnumerable<(int,int)> alternativePositions = Enumerable.Empty<(int,int)>();
+
+        private IEnumerable<(int,int)> path = Enumerable.Empty<(int,int)>();
+
         public void Execute()
         {
             bool result = true;
             (int vertical,int horizontal) position = (0,0);
 
-            string d = "......\n" +
-                   "......\n" +
-                   "......\n" +
-                   "......\n" +
-                   ".....W\n" +
-                   "....W.";
+            string maze = ".W...W.W..\n" +
+                          ".......W..\n" +
+                          "W..W......\n" +
+                          "...W.WW...\n" +
+                          "WW..W..WWW\n" +
+                          ".....W....\n" +
+                          "W.W.W....W\n" +
+                          "...WW...W.\n" +
+                          ".W........\n" +
+                          ".W........";
 
-            string[] matrix = d.Split("\n");
+            string[] matrix = maze.Split("\n");
 
-            while(position.horizontal < matrix[0].Length && position.vertical <  matrix.Length){
+            while((position.horizontal < matrix[0].Length && position.vertical <  matrix.Length)){
+                path = path.Append(position);
                 position = NextPosition(position,matrix);
 
                 if(position.horizontal == default && position.vertical==default)
@@ -46,16 +55,32 @@ namespace Challenges{
 
         private (int,int) NextPosition((int,int)actual, string[] matrix){
 
-            if(actual.Item2 + 1 < matrix[0].Length &&
-                matrix[actual.Item1][actual.Item2 + 1] == '.') return (actual.Item1,actual.Item2 + 1);
-
-            if(actual.Item1 + 1 < matrix.Length &&
-                matrix[actual.Item1 + 1][actual.Item2] == '.') return (actual.Item1 +1 ,actual.Item2);
-
             if(actual.Item1 == matrix.Length - 1 &&
                 actual.Item2==matrix[0].Length - 1) return actual;
 
-            return (default,default);
+            (int,int) nextMove = (default,default);
+            (int vertical,int horizontal) up = (actual.Item1 - 1 >=0? actual.Item1 - 1: 0,actual.Item2);
+            (int vertical,int horizontal) down = (actual.Item1 + 1 < matrix.Length? actual.Item1 + 1: matrix.Length-1,actual.Item2);
+            (int vertical,int horizontal) left = (actual.Item1,actual.Item2-1 >=0?actual.Item2 - 1:0);
+            (int vertical,int horizontal) rigth = (actual.Item1,actual.Item2+1 < matrix.Length?actual.Item2+1:matrix.Length - 1);
+
+            if(!path.Contains(rigth) && matrix[rigth.vertical][rigth.horizontal] == '.') nextMove = rigth;
+
+            if(nextMove == (default,default) && matrix[down.vertical][down.horizontal] == '.') nextMove = down;
+            AddToAlternative(up,matrix);
+
+            if(nextMove == (default,default) && matrix[left.vertical][left.horizontal] == '.') nextMove = left;
+            AddToAlternative(left,matrix);
+
+            if(nextMove == (default,default) && matrix[up.vertical][up.horizontal] == '.') nextMove = up;
+            AddToAlternative(up,matrix);
+
+            return nextMove;
+        }
+
+        private void AddToAlternative((int vertical,int horizontal) position,string[] matrix)
+        {
+            if(!path.Contains(position) && matrix[position.vertical][position.horizontal] == '.') alternativePositions = alternativePositions.Append(position);
         }
     }
 }
