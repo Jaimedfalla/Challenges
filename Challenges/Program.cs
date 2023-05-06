@@ -1,6 +1,6 @@
 ﻿using Challenges;
 
-IAlgorithm algorithm = new PathFinder();
+IAlgorithm algorithm = new PackingBackpack();
 algorithm.Execute();
 
 
